@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap" rel="stylesheet">
-<link href="style.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/jquery"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery.terminal/js/jquery.terminal.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css"/>
+<link href="styleSheets/style.css" rel="stylesheet" />
+<script src="scripts/jquery.js"></script>
+<script src="scripts/jquery.terminal.min.js"></script>
+<link rel="stylesheet" href="styleSheets/jquery.terminal.min.css"/>
 </head>
 <body>
     <template id="greetings">
@@ -19,6 +16,7 @@
  \_____|_|  \_\______|______|  |_|  |_____|_| \_|\_____|
 This is an example greeting! You can put any text here! 
 Even ASCII art like what's above!
+Use "help" to see a list of available commands
     </template>
     <script>
 
@@ -76,7 +74,7 @@ dirCodes = new Map();
 paths = new Map();
 
 //Change the source folder name here :)
-paths.set(0, "<E:\\root>")
+paths.set(0, "<C:\\root>")
 
 //The files map holds the keyword(s) of our files as keys, and sets their values to their place in fileArray[]
 files = new Map();  
@@ -112,20 +110,28 @@ function makeFile(code, name, folder, content){
     files2.set(files.get(code)[0], content)
 }
 
-
+//makeFolder() creates folders as declared in populate()
 function makeFolder(name, dirID){
+    //get rid of case sensitivity and add the unified-case name to the directory database, pointing to the new dirID
     dirCodes.set(name.toLowerCase(), dirID)
+    //grab the parent directory ID of the folder we want to make
     pID = truncate(dirID);
+    //if the truncated value is an empty string, set it to 0, to keep things numerical, yk?
     if(pID == ""){
         pID = 0;
     }
+    //otherwise, re-numberize the pID
     else {
         pID = Number(pID);
     }
+    //take the name as given, and append it to the path of its parents
     name = paths.get(pID).split(">")[0]+"\\"+name+">";
+    //lastly, create a new paths pair, with a key of the directory ID, and the new, long name.
     paths.set(dirID, name);
 }
 
+
+//Populate runs as soon as the html loads, 
 function populate(){
 
     //makeFile("", "", 0, "")

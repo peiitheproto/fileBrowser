@@ -1,0 +1,19 @@
+.terminal {
+    --color: #00ff00;
+    --size: 1.8;
+    --background: #000000;
+    --link-color: darkblue;
+    --animation: terminal-underline;
+    --line-thickness: 3;
+    --font: 'Google Sans Code', Courier;
+    text-wrap: balance;
+    resize: both;
+    overflow: hidden;
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  src: url('../fonts/GoogleSansCode-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
