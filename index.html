@@ -393,9 +393,10 @@ $('body').terminal({
                 }
             }
         }
-        //9. - now loop
+        //9. - now loop through the files and print out their names
         for (let index = 0; index < fileArray.length; index++) {
             const element = fileArray[index];
+            //9.1 - remember that element is going to be an array, as fileArray[] at any index will be a pair [name, directory], so we compare the user's directory with element[1] (the file's directory)
             if(dir == element[1]){
                 str += ("\n>>> " + element[0])
             }
