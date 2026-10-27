@@ -20,6 +20,12 @@ Use "help" to see a list of available commands
     </template>
     <script>
 
+//Heyo! I've tried to lay this all out as cleanly as possible, but feel free to use the Issues tab on the GitHub repository to ask any questions you may have, I'll do my best to answer in a timely manner :)
+//And, as a disclaimer, NONE of this code is AI-generated. I googled a few things and it spit its AI slop back at me, which is unfortunately unavoidable these days,
+//but I used actual documentation and websites for this. I can't physically stop you from vibe-coding extra stuff into here, but
+//I highly encourage you to use forums, official documentation, and other human-made resources to maintain or improve your programming knowledge, rather than letting an AI model think for you.
+
+
 
 //This function counts the decimal places of the input number
 //It does NOT count total digits, just the amount after the decimal point, ex. countDecimalPlaces(1.23) = 2
@@ -196,6 +202,19 @@ $('body').terminal({
     //If you add more commands, you should probably add them here
     help: async function(){
 
+        /*
+        
+        Currently the help function will print this:
+
+        >>dir [folder] - choose directory to browse
+        >> access [file] - choose file to open
+        >> list - lists available files and folders in the current directory
+        >> back - returns you to the previous directory
+        >> home - returns you to the root directory
+        >> current - prints the current directory path
+        
+        */
+
         helpStr = ">> dir [folder] - choose directory to browse \n>> access [file] - choose file to open \n>> list - lists available files and folders in the current directory \n>> back - returns you to the previous directory \n>> home - returns you to the root directory \n>> current - prints the current directory path"
 
 
@@ -277,7 +296,9 @@ $('body').terminal({
         await this.echo(">> Now in directory: " + paths.get(dir), {typing:true, delay:25})
     },
 
+    //<home> simply resets your directory (dir) to the root (0)
     home: async function(){
+        //making sure you aren't already in the root directory
         if(dir != 0){
             dir = 0;
             await this.echo(">> You are now in <E:\\root>", {typing:true, delay:25});
@@ -286,53 +307,57 @@ $('body').terminal({
         await this.echo(">> You are already in <E:\\root>", {typing:true, delay:25})
     },
 
+    //<back> uses the truncate() function we defined at the top of the script to send the user to the parent of their current directory
     back: async function(){
+        //quick check to make sure you actually have a folder to go back to
         if(dir == 0){
             await this.echo(">> You are already in the highest-level directory", {typing:true, delay:25});
             return;
         }
         
+        //Here we have to make sure to use Number(); remember that truncate() can take in any data type that has a valid toString() method
+        //Number() does exactly what it sounds like, it turns the input into a number, pretty simple
         dir = Number(truncate(dir));
 
         await this.echo(">> Now in directory: " + paths.get(dir), {typing:true, delay:25});
     },
 
+    //<list> was a pain in my ass to code, but it's worth it tbh because it's the only way to view the contents of the local folder lmao
+    //This might take me a hot sec to explain, but I'll try my best
     list: async function(){
-         str = "";
 
+         //2. - We create an array dirArray, and feed it every key currently in the paths map, using the [...] operator
          dirArray = [...paths.keys()];
 
+         //3. - This variable keeps track of folders available from the current directory
          folderNum = 0;
-
-         rootFolderNum = 0;
-
+         //4. - This variable keeps track of files available from the current directory
          fileNum = 0;
         
+        //5. - We calculate the number of folders via looping through all valid directories
         for (let index = 0; index < dirArray.length; index++) {
+            //5.1 - element is the valid directory we are testing to see if it's a child of our current directory
             const element = dirArray[index];
-            if(dir != 0){
-                i = 1;
-                while(i < 10){
+            //5.2 - initialize an index variable
+            i = 1;
+            //5.3 - yes this is just a bastardized for loop, don't judge me
+            while(i < 10){
+                //5.4 - create a new dir to test with, which will be equal to a value one decimal place smaller than the current directory
+                //Creating the testing value to add to our current directory (ie. 1.1 + 0.01) is done by counting the decimal places of our current directory,
+                //then taking our current index, for example, 3, and dividing it by 10^decVal. We do it this way because 10^x will add a digit of 0 to the end of the result, making digits = x+1.
+                //then, dividing our index (ex. 3) by this number (ex. 10^3 or 1000) gets us 3/1000, or 0.003. Thus, if we were in directory 1.22, we could test to see if directory 1.223 existed, and add it to the list if it does
                 nDir = floatMathFix(dir + (i/(10**countDecimalPlaces(dir))));
-                if(nDir == element){
+                //5.5 - then, if our index == the path we're comparing against (which means our parent directory was the root) OR the testing directory nDir == comparison path (element), we increase our folderNum by 1
+                if(i == element || nDir == element){
                     folderNum++;
                 }
+                //5.6 - increase the index so we don't get stuck in an infinite loop
                 i++;
-                }
             }
-            else{
-                k = 1;
-                while(k < 100){
-                    if(k == element){
-                        rootFolderNum++;
-                    }
-                    k++;
-                }
-            }
-            
         }
-         dirs = []
-        
+
+
+        //6. - file counting is a bit less tedious, we loop through all available files in fileArray[], and if our directory == the parent directory of the file, we increase fileNum by 1
         for (let index = 0; index < fileArray.length; index++) {
             const element = fileArray[index];
             if(dir == element[1]){
@@ -340,71 +365,92 @@ $('body').terminal({
             }
         }
 
-  
+        
+        //7. - now we create our string and add our first line, which summarizes the list by stating the total number of folders and files in the directory
+        str = ">> " + paths.get(dir) + " has " + folderNum + " folders and " + fileNum + " files";
 
-        if(dir == 0){
-            str = ">> " + paths.get(dir) + " has " + rootFolderNum + " folders and " + fileNum + " files";
-        }
-        else{
-            str = ">> " + paths.get(dir) + " has " + folderNum + " folders and " + fileNum + " files";
-        }
-
+        
+        //Now we actually print out the name of each folder and file
+        //8. - first, we loop through the possible folders, using a real for loop this time
         for (let index = 1; index < 10; index++) {
+            //8.1 - check to make sure we aren't in the root directory
             if(dir != 0){
+                //8.2 - nDir is the same here as it was when we counted our folders
                 nDir = floatMathFix(dir + (index/(10**countDecimalPlaces(dir))));
-                //str += ("\n testing nDir " + nDir)
+                //8.3 - make sure that nDir actually exists
                 if(paths.get(nDir)!=undefined){
-                nStr = paths.get(nDir).split("\\")
+                    //8.4 - grab the end of the folder path by splitting the string by each appearance of "\", leaving the end of the resulting array as "folderName>"
+                    nStr = paths.get(nDir).split("\\")
+                    //8.5 - append the last element of the array ("folderName>") to a preset beginning, I have mine set up as "\n>>> <\\", because I like the triple ">" making an indent for readability
+                    str += ("\n>>> <\\" + nStr[nStr.length-1])
+                }
+                //8.6 if nDir doesn't exist, check the root folders
+                else if(paths.get(index)!=undefined){
+                    //same as 8.4, grab the end of the folder path by splitting the string by each appearance of "\", leaving the end of the resulting array as "folderName>"
+                    nStr = paths.get(index).split("\\")
+                    //same as 8.5, append the last element of the array ("folderName>") to our preset beginnning
                     str += ("\n>>> <\\" + nStr[nStr.length-1])
                 }
             }
-            else{
-                //str += ("\n testing nDir " + index)
-                if(paths.get(index)!=undefined){
-                    nStr = paths.get(index).split("\\")
-                    str += ("\n>>> <\\" + nStr[nStr.length-1])
-                }
-            }    
         }
-
+        //9. - now loop
         for (let index = 0; index < fileArray.length; index++) {
             const element = fileArray[index];
             if(dir == element[1]){
                 str += ("\n>>> " + element[0])
             }
         }
+
+        //PRINTER -> See comments on the <help> code
          lines = $.terminal.split_equal(str, 125, true);
             for (let index = 0; index < lines.length; index++) {
                 const element = lines[index];
                 await this.echo(element, {typing:true, delay:25});
                 await new Promise(resolve => setTimeout(resolve, 25));
             }
+        //10. - Before we end the function, because we used ">>>" to indent the printouts of our files, I've added a print of ">>", so that there's some empty space between the list and the next command, and so that it looks a little nicer
         await this.echo(">>")
         return;
     },
 
+    //<access> is, thankfully, quite simple, it just grabs the content of a file, and prints its contents
     access: async function(code) {
+        //get rid of case sensitivity, I used toUpperCase() here to distinguish from what <dir> uses
+        //just like with dir, that means no duplicate file codes, but you can use multiple keywords for the same file, see the comments on the makeFile() examples in populate() near the top of the script
         code = code.toUpperCase();
         
+        //two checks, first is to make sure the file exists, and the second confirms that we're in the same directory as it
         if(files.get(code)!=undefined && dir == files.get(code)[1]){
+            //First we create a starter string, for purely aesthetic and accessibility reasons
+            //We start with ">> File: ", which is then followed by the path of the current directory, which has its name truncated so there isn't a ">" in the middle of our line
+            //Next, we append a "\" and the display name of the file, ending with a ">" to match the directory path, which starts with "<". 
+            //We also add on a new line with just ">>" to add a small indent between our starter string and the file content
             str = (">> File: " + truncate(paths.get(dir)) + "\\" + files.get(code)[0] + ">\n>>");
+            //Printing our starter string
             await this.echo(str, {typing:true, delay:25});
+            //PRINTER -> See comments on the <help> code
             lines = $.terminal.split_equal(files2.get(files.get(code)[0]), 125, true);
             for (let index = 0; index < lines.length; index++) {
                 const element = lines[index];
                 await this.echo(">>> " + element, {typing:true, delay:25});
                 await new Promise(resolve => setTimeout(resolve, 25));
             }
+            //Another small indent, because I like it lol
             await this.echo(">>")
         }
+        //if the file does not exist, or the user isn't in the right directory, tell the user the file isn't there
         else {
-            await this.echo(">> Could not find file "  + truncate(paths.get(dir)) + "\\" + code + ">    ", {typing:true, delay:25})
+            await this.echo(">> Could not find file "  + truncate(paths.get(dir)) + "\\" + code + ">", {typing:true, delay:25})
             return;
         }
     },
 }, {
+
+    //I don't actually know how this line works, but as far as I can tell it's what displays our greeting on startup
     greetings: greetings.innerHTML
 });
+
+// That's all! have fun!
 </script>
 </body>
 </html>
