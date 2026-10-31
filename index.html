@@ -371,10 +371,10 @@ $('body').terminal({
 
         
         //Now we actually print out the name of each folder and file
+
         //8. - first, we loop through the possible folders, using a real for loop this time
         for (let index = 1; index < 10; index++) {
             //8.1 - check to make sure we aren't in the root directory
-            if(dir != 0){
                 //8.2 - nDir is the same here as it was when we counted our folders
                 nDir = floatMathFix(dir + (index/(10**countDecimalPlaces(dir))));
                 //8.3 - make sure that nDir actually exists
@@ -390,7 +390,6 @@ $('body').terminal({
                     nStr = paths.get(index).split("\\")
                     //same as 8.5, append the last element of the array ("folderName>") to our preset beginnning
                     str += ("\n>>> <\\" + nStr[nStr.length-1])
-                }
             }
         }
         //9. - now loop through the files and print out their names
